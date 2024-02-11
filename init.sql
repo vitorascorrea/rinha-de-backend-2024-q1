@@ -1,7 +1,7 @@
 CREATE TABLE customers (
   id SERIAL PRIMARY KEY,
-  balance_limit DECIMAL(10, 2) NOT NULL,
-  current_balance DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  balance_limit INTEGER NOT NULL,
+  current_balance INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP
@@ -10,19 +10,12 @@ CREATE TABLE customers (
 CREATE TABLE transactions (
   id SERIAL PRIMARY KEY,
   customer_id INTEGER NOT NULL,
-  amount DECIMAL(10, 2) NOT NULL,
+  amount INTEGER NOT NULL,
   description TEXT NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   deleted_at TIMESTAMP
 );
 
-BEGIN
- INSERT INTO customers (balance_limit)
-  VALUES
-    (1000 * 100),
-    (800 * 100),
-    (10000 * 100),
-    (100000 * 100),
-    (5000 * 100);
-END;
+INSERT INTO customers(balance_limit)
+VALUES (100000), (80000), (1000000), (10000000), (500000);

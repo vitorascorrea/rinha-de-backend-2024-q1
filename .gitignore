@@ -29,3 +29,5 @@
 /api/config/master.key
 
 /gatling/**/*
+
+executar-teste-local.sh

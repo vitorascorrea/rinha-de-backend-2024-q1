@@ -9,8 +9,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "0.5GB"
+          cpus: "0.5"
+          memory: "150MB"
   api2:
     image: api
     hostname: api2
@@ -21,8 +21,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "0.5GB"
+          cpus: "0.5"
+          memory: "150MB"
   nginx: # Load Balancer
     image: nginx:latest
     volumes:
@@ -35,8 +35,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "0.5GB"
+          cpus: "0.15"
+          memory: "10MB"
   db:
     image: mysql:latest
     restart: always
@@ -55,8 +55,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.75"
-          memory: "1.5GB"
+          cpus: "0.35"
+          memory: "240MB"
 
 volumes:
   mysql:

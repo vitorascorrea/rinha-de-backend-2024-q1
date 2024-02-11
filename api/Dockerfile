@@ -1,4 +1,6 @@
 FROM ruby:3.0-bullseye as base
+ENV RAILS_ENV production
+
 RUN apt-get update -qq && apt-get install -y build-essential apt-utils libpq-dev nodejs
 WORKDIR /docker/app
 RUN gem install bundler

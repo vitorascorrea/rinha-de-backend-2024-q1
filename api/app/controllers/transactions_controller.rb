@@ -11,22 +11,29 @@ class TransactionsController < ApplicationController
       return
     end
 
-    transaction = Transaction.new(
-      customer: customer,
-      amount: params[:valor],
-      kind: params[:tipo],
-      description: params[:descricao]
-    )
+    payload = nil
+    transaction = nil
 
-    if transaction.save
-      payload = {
-        "limite" => customer.balance_limit,
-        "saldo" => customer.current_balance,
-      }
+    customer.with_lock do
+      transaction = Transaction.new(
+        customer: customer,
+        amount: params[:valor],
+        kind: params[:tipo],
+        description: params[:descricao]
+      )
 
+      if transaction.save
+        payload = {
+          "limite" => customer.balance_limit,
+          "saldo" => customer.current_balance,
+        }
+      end
+    end
+
+    if payload.present?
       render json: payload, status: 200
     else
-      render json: transaction.errors, status: 422
+      render json: transaction&.errors, status: 422
     end
   end
 

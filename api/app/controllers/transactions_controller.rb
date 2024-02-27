@@ -1,4 +1,6 @@
 class TransactionsController < ApplicationController
+  around_action :wrap_in_transaction
+
   def create
     return head 422 unless valid_params?
 
@@ -21,7 +23,7 @@ class TransactionsController < ApplicationController
       customer_balance + params[:valor]
 
     create_transaction(params[:id], params[:valor], params[:tipo], params[:descricao])
-    update_balance(params[:id], new_customer_balance)
+    update_balance(params[:id], new_customer_balance) if new_customer_balance != customer_balance
 
     payload = {
       "limite" => customer_balance_limit,
@@ -32,7 +34,7 @@ class TransactionsController < ApplicationController
   end
 
   def balance
-    customer_data = get_customer_data(params[:id])
+    customer_data = get_customer_data(params[:id], with_lock: false)
 
     return head 404 if customer_data.blank?
 
@@ -58,6 +60,12 @@ class TransactionsController < ApplicationController
 
   private
 
+  def wrap_in_transaction
+    ActiveRecord::Base.transaction do
+      yield
+    end
+  end
+
   def valid_params?
     valor_is_valid = params[:valor].present? && params[:valor].is_a?(Integer)
     tipo_is_valid = params[:tipo].present? && ["c", "d"].include?(params[:tipo])
@@ -74,11 +82,12 @@ class TransactionsController < ApplicationController
     current_balance - amount < balance_limit * -1
   end
 
-  def get_customer_data(customer_id)
+  def get_customer_data(customer_id, with_lock: true)
     sql = <<~SQL
       SELECT current_balance, balance_limit
       FROM customers
       WHERE id = #{customer_id}
+      #{with_lock ? "FOR UPDATE" : ""}
     SQL
 
     ActiveRecord::Base.connection.execute(sql)&.first
@@ -97,9 +106,10 @@ class TransactionsController < ApplicationController
   end
 
   def create_transaction(customer_id, amount, kind, description)
+    # Have to sanitize the input to avoid SQL injection
     sql = <<~SQL
-      INSERT INTO transactions (customer_id, amount, kind, description, created_at, updated_at)
-      VALUES (#{customer_id}, #{amount}, #{"'" + kind + "'"}, #{"'" + description + "'"}, NOW(), NOW())
+      INSERT INTO transactions (customer_id, amount, kind, description)
+      VALUES (#{customer_id}, #{amount}, #{"'" + kind + "'"}, #{"'" + description + "'"})
     SQL
 
     ActiveRecord::Base.connection.execute(sql)

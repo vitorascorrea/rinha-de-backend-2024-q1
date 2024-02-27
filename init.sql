@@ -18,5 +18,7 @@ CREATE TABLE transactions (
   deleted_at TIMESTAMP
 );
 
+CREATE INDEX transactions_customer_id_index ON transactions(customer_id);
+
 INSERT INTO customers(balance_limit)
 VALUES (100000), (80000), (1000000), (10000000), (500000);

@@ -31,3 +31,5 @@
 /gatling/**/*
 /load-test/**/*
 executar-teste-local.sh
+down-things.sh
+up-things.sh

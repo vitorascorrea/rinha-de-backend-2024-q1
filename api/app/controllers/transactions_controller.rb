@@ -1,73 +1,59 @@
 class TransactionsController < ApplicationController
-  def index
-    render json: { message: Customer.all }
-  end
-
   def create
-    return render json: { message: "Invalid params" }, status: 422 unless valid_params?
+    return head 422 unless valid_params?
 
-    customer = Customer.find(params[:id])
+    customer_data = get_customer_data(params[:id])
 
-    unless customer
-      render json: { message: "Customer not found" }, status: 404
-      return
-    end
+    return head 404 if customer_data.blank?
 
-    payload = nil
-    transaction = nil
+    customer_balance = customer_data[0]
+    customer_balance_limit = customer_data[1]
 
-    customer.with_lock do
-      transaction = Transaction.new(
-        customer: customer,
-        amount: params[:valor],
-        kind: params[:tipo],
-        description: params[:descricao]
-      )
+    return head 422 if exceeds_balance_limit?(
+      customer_balance,
+      customer_balance_limit,
+      params[:valor],
+      params[:tipo]
+    )
 
-      if transaction.save
-        payload = {
-          "limite" => customer.balance_limit,
-          "saldo" => customer.current_balance,
-        }
-      end
-    end
+    new_customer_balance = params[:tipo] == "d" ?
+      customer_balance - params[:valor] :
+      customer_balance + params[:valor]
 
-    if payload.present?
-      render json: payload, status: 200
-    else
-      render json: transaction&.errors, status: 422
-    end
+    create_transaction(params[:id], params[:valor], params[:tipo], params[:descricao])
+    update_balance(params[:id], new_customer_balance)
+
+    payload = {
+      "limite" => customer_balance_limit,
+      "saldo" => new_customer_balance,
+    }
+
+    return render json: payload, status: 200
   end
 
   def balance
-    customer = Customer.find(params[:id])
+    customer_data = get_customer_data(params[:id])
 
-    unless customer
-      render json: { message: "Customer not found" }, status: 404
-      return
-    end
+    return head 404 if customer_data.blank?
 
     payload = {
       "saldo" => {
-        "total" => customer.current_balance,
-        "limite" => customer.balance_limit,
-        "data_extrato" => Time.now.strftime("%Y-%m-%dT%H:%M:%S.%L%z")
+        "total" => customer_data[0],
+        "limite" => customer_data[1],
+        "data_extrato" => Time.now
       },
-      "ultimas_transacoes" => Transaction
-        .where(customer: customer)
-        .last(10)
-        .reverse
+      "ultimas_transacoes" => get_latest_transactions(params[:id])
         .map do |t|
           {
-            "valor": t.amount,
-            "tipo": t.kind,
-            "descricao": t.description,
-            "realizada_em": t.created_at.strftime("%Y-%m-%dT%H:%M:%S.%L%z")
+            "valor": t[0],
+            "tipo": t[1],
+            "descricao": t[2],
+            "realizada_em": t[3]
           }
         end
     }
 
-    render json: payload, status: 200
+    return render json: payload, status: 200
   end
 
   private
@@ -80,5 +66,52 @@ class TransactionsController < ApplicationController
       params[:descricao].length <= 10
 
     valor_is_valid && tipo_is_valid && descricao_is_valid
+  end
+
+  def exceeds_balance_limit?(current_balance, balance_limit, amount, kind)
+    return false unless kind == "d"
+
+    current_balance - amount < balance_limit * -1
+  end
+
+  def get_customer_data(customer_id)
+    sql = <<~SQL
+      SELECT current_balance, balance_limit
+      FROM customers
+      WHERE id = #{customer_id}
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql)&.first
+  end
+
+  def get_latest_transactions(customer_id, limit = 10)
+    sql = <<~SQL
+      SELECT t.amount, t.kind, t.description, t.created_at
+      FROM transactions AS t
+      WHERE customer_id = #{customer_id}
+      ORDER BY id DESC
+      LIMIT #{limit}
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql).to_a
+  end
+
+  def create_transaction(customer_id, amount, kind, description)
+    sql = <<~SQL
+      INSERT INTO transactions (customer_id, amount, kind, description, created_at, updated_at)
+      VALUES (#{customer_id}, #{amount}, #{"'" + kind + "'"}, #{"'" + description + "'"}, NOW(), NOW())
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql)
+  end
+
+  def update_balance(customer_id, new_balance)
+    sql = <<~SQL
+      UPDATE customers
+      SET current_balance = #{new_balance}
+      WHERE id = #{customer_id}
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql)
   end
 end

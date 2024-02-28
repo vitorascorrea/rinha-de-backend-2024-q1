@@ -1,6 +1,4 @@
 class TransactionsController < ApplicationController
-  around_action :wrap_in_transaction
-
   def create
     return head 422 unless valid_params?
 
@@ -34,7 +32,7 @@ class TransactionsController < ApplicationController
   end
 
   def balance
-    customer_data = get_customer_data(params[:id], with_lock: false)
+    customer_data = get_customer_data(params[:id])
 
     return head 404 if customer_data.blank?
 
@@ -59,12 +57,6 @@ class TransactionsController < ApplicationController
   end
 
   private
-
-  def wrap_in_transaction
-    ActiveRecord::Base.transaction do
-      yield
-    end
-  end
 
   def valid_params?
     valor_is_valid = params[:valor].present? && params[:valor].is_a?(Integer)

@@ -1,5 +1,5 @@
 services:
-  api1:
+  api1: &api
     image: api
     hostname: api1
     expose:
@@ -10,19 +10,10 @@ services:
       resources:
         limits:
           cpus: "0.5"
-          memory: "150MB"
+          memory: "200MB"
   api2:
-    image: api
+    <<: *api
     hostname: api2
-    expose:
-      - "5000"
-    depends_on:
-      - db
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: "150MB"
   nginx: # Load Balancer
     image: nginx:latest
     volumes:
@@ -44,7 +35,6 @@ services:
       POSTGRES_DB: "api_db"
       POSTGRES_USER: "user"
       POSTGRES_PASSWORD: "password"
-      POSTGRES_ROOT_PASSWORD: "password"
     ports:
       - "5432:5432"
     expose:
@@ -56,7 +46,7 @@ services:
       resources:
         limits:
           cpus: "0.35"
-          memory: "240MB"
+          memory: "140MB"
 
 volumes:
   postgres:

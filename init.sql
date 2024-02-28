@@ -20,5 +20,10 @@ CREATE TABLE transactions (
 
 CREATE INDEX transactions_customer_id_index ON transactions(customer_id);
 
-INSERT INTO customers(balance_limit)
-VALUES (100000), (80000), (1000000), (10000000), (500000);
+INSERT INTO customers(balance_limit, current_balance, created_at, updated_at, deleted_at)
+VALUES
+  (100000, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  (80000, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  (1000000, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  (10000000, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+  (500000, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL);

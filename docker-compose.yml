@@ -38,20 +38,20 @@ services:
           cpus: "0.15"
           memory: "10MB"
   db:
-    image: mysql:latest
+    image: postgres:latest
     restart: always
     environment:
-      MYSQL_DATABASE: "api_db"
-      MYSQL_USER: "user"
-      MYSQL_PASSWORD: "password"
-      MYSQL_ROOT_PASSWORD: "password"
+      POSTGRES_DB: "api_db"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "password"
+      POSTGRES_ROOT_PASSWORD: "password"
     ports:
-      - "3306:3306"
+      - "5432:5432"
     expose:
-      - "3306"
+      - "5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - mysql:/var/lib/mysql
+      - postgres:/var/lib/postgresql/data
     deploy:
       resources:
         limits:
@@ -59,4 +59,4 @@ services:
           memory: "240MB"
 
 volumes:
-  mysql:
+  postgres:

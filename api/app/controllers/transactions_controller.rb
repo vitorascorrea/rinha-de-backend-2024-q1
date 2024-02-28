@@ -1,4 +1,6 @@
 class TransactionsController < ApplicationController
+  around_action :wrap_in_transaction
+
   def create
     return head 422 unless valid_params?
 
@@ -58,6 +60,12 @@ class TransactionsController < ApplicationController
 
   private
 
+  def wrap_in_transaction
+    ActiveRecord::Base.transaction do
+      yield
+    end
+  end
+
   def valid_params?
     valor_is_valid = params[:valor].present? && params[:valor].is_a?(Integer)
     tipo_is_valid = params[:tipo].present? && ["c", "d"].include?(params[:tipo])
@@ -79,6 +87,7 @@ class TransactionsController < ApplicationController
       SELECT current_balance, balance_limit
       FROM customers
       WHERE id = #{customer_id}
+      #{with_lock ? "FOR UPDATE" : ""}
     SQL
 
     ActiveRecord::Base.connection.execute(sql)&.first

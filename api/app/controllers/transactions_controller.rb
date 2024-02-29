@@ -34,7 +34,7 @@ class TransactionsController < ApplicationController
   end
 
   def balance
-    customer_data = get_customer_data(params[:id])
+    customer_data = get_customer_data(params[:id], with_lock: false)
 
     return head 404 if customer_data.blank?
 
@@ -86,42 +86,50 @@ class TransactionsController < ApplicationController
     sql = <<~SQL
       SELECT current_balance, balance_limit
       FROM customers
-      WHERE id = #{customer_id}
-      #{with_lock ? "FOR UPDATE" : ""}
+      WHERE id = ?
     SQL
 
-    ActiveRecord::Base.connection.execute(sql)&.first
+    sql += " FOR UPDATE" if with_lock
+
+    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, customer_id])
+
+    ActiveRecord::Base.connection.execute(sanitized_sql)&.first
   end
 
   def get_latest_transactions(customer_id, limit = 10)
     sql = <<~SQL
       SELECT t.amount, t.kind, t.description, t.created_at
       FROM transactions AS t
-      WHERE customer_id = #{customer_id}
+      WHERE customer_id = ?
       ORDER BY id DESC
-      LIMIT #{limit}
+      LIMIT ?
     SQL
 
-    ActiveRecord::Base.connection.execute(sql).to_a
+    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, customer_id, limit])
+
+    ActiveRecord::Base.connection.execute(sanitized_sql).to_a
   end
 
   def create_transaction(customer_id, amount, kind, description)
-    # Have to sanitize the input to avoid SQL injection
     sql = <<~SQL
       INSERT INTO transactions (customer_id, amount, kind, description)
-      VALUES (#{customer_id}, #{amount}, #{"'" + kind + "'"}, #{"'" + description + "'"})
+      VALUES (?, ?, ?, ?)
     SQL
 
-    ActiveRecord::Base.connection.execute(sql)
+    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, customer_id, amount, kind, description])
+
+    ActiveRecord::Base.connection.execute(sanitized_sql)
   end
 
   def update_balance(customer_id, new_balance)
     sql = <<~SQL
       UPDATE customers
-      SET current_balance = #{new_balance}
-      WHERE id = #{customer_id}
+      SET current_balance = ?
+      WHERE id = ?
     SQL
 
-    ActiveRecord::Base.connection.execute(sql)
+    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, new_balance, customer_id])
+
+    ActiveRecord::Base.connection.execute(sanitized_sql)
   end
 end

@@ -25,5 +25,28 @@ module Api
     config.api_only = true
 
     config.hosts << "api"
+
+    middlewares = [
+      ActionDispatch::HostAuthorization,
+      Rack::Sendfile,
+      ActionDispatch::Static,
+      ActionDispatch::Executor,
+      ActionDispatch::ServerTiming,
+      ActiveSupport::Cache::Strategy::LocalCache::Middleware,
+      Rack::Runtime,
+      ActionDispatch::RequestId,
+      ActionDispatch::RemoteIp,
+      Rails::Rack::Logger,
+      ActionDispatch::ShowExceptions,
+      ActionDispatch::DebugExceptions,
+      ActionDispatch::ActionableExceptions,
+      ActionDispatch::Reloader,
+      ActionDispatch::Callbacks,
+      ActiveRecord::Migration::CheckPending,
+      Rack::ConditionalGet,
+      Rack::ETag
+    ].each do |middleware|
+      config.middleware.delete middleware
+    end
   end
 end

@@ -1,4 +1,4 @@
-CREATE TABLE customers (
+CREATE UNLOGGED TABLE customers (
   id SERIAL PRIMARY KEY,
   balance_limit INTEGER NOT NULL,
   current_balance INTEGER NOT NULL DEFAULT 0,
@@ -7,7 +7,7 @@ CREATE TABLE customers (
   deleted_at TIMESTAMP
 );
 
-CREATE TABLE transactions (
+CREATE UNLOGGED TABLE transactions (
   id SERIAL PRIMARY KEY,
   customer_id INTEGER NOT NULL,
   amount INTEGER NOT NULL,

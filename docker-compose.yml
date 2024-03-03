@@ -2,6 +2,11 @@ services:
   api1: &api
     image: api
     hostname: api1
+    environment:
+      RAILS_ENV: production
+      WEB_CONCURRENCY: 3
+      RAILS_MAX_THREADS: 6
+      RUBY_YJIT_ENABLE: 1
     expose:
       - "5000"
     depends_on:
@@ -10,7 +15,7 @@ services:
       resources:
         limits:
           cpus: "0.5"
-          memory: "200MB"
+          memory: "205MB"
   api2:
     <<: *api
     hostname: api2
@@ -26,8 +31,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.15"
-          memory: "10MB"
+          cpus: "0.1"
+          memory: "35MB"
   db:
     image: postgres:latest
     restart: always
@@ -45,8 +50,13 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.35"
-          memory: "140MB"
+          cpus: "0.4"
+          memory: "105MB"
 
 volumes:
   postgres:
+
+networks:
+  default:
+    driver: bridge
+    name: rinha-nginx-2024q1

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class TransactionsController < ApplicationController
   around_action :wrap_in_transaction
 
@@ -91,9 +93,9 @@ class TransactionsController < ApplicationController
 
     sql += " FOR UPDATE" if with_lock
 
-    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, customer_id])
-
-    ActiveRecord::Base.connection.execute(sanitized_sql)&.first
+    ActiveRecord::Base.connection.execute(
+      ActiveRecord::Base.sanitize_sql_array([sql, customer_id])
+    )&.first
   end
 
   def get_latest_transactions(customer_id, limit = 10)
@@ -105,9 +107,9 @@ class TransactionsController < ApplicationController
       LIMIT ?
     SQL
 
-    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, customer_id, limit])
-
-    ActiveRecord::Base.connection.execute(sanitized_sql).to_a
+    ActiveRecord::Base.connection.execute(
+      ActiveRecord::Base.sanitize_sql_array([sql, customer_id, limit])
+    ).to_a
   end
 
   def create_transaction(customer_id, amount, kind, description)
@@ -116,9 +118,9 @@ class TransactionsController < ApplicationController
       VALUES (?, ?, ?, ?)
     SQL
 
-    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, customer_id, amount, kind, description])
-
-    ActiveRecord::Base.connection.execute(sanitized_sql)
+    ActiveRecord::Base.connection.execute(
+      ActiveRecord::Base.sanitize_sql_array([sql, customer_id, amount, kind, description])
+    )
   end
 
   def update_balance(customer_id, new_balance)
@@ -128,8 +130,8 @@ class TransactionsController < ApplicationController
       WHERE id = ?
     SQL
 
-    sanitized_sql = ActiveRecord::Base.sanitize_sql_array([sql, new_balance, customer_id])
-
-    ActiveRecord::Base.connection.execute(sanitized_sql)
+    ActiveRecord::Base.connection.execute(
+      ActiveRecord::Base.sanitize_sql_array([sql, new_balance, customer_id])
+    )
   end
 end

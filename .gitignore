@@ -33,3 +33,4 @@
 executar-teste-local.sh
 down-things.sh
 up-things.sh
+build-and-push.sh

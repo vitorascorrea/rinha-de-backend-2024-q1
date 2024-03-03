@@ -6,10 +6,14 @@
 
 ## Vitor Augusto de Souza Corrêa
 
-Submissão feita com:
+Submissão feita com amor e:
 - `Rails`
 - `Postgres`
 - `Nginx`
+
+Para rodar, use `docker-compose up`
+
+_________________
 
 [Github](https://github.com/vitorascorrea) - [LinkedIn](https://www.linkedin.com/in/vitorascorrea/)
 

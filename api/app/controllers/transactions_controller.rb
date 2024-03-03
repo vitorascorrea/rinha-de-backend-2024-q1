@@ -103,7 +103,7 @@ class TransactionsController < ApplicationController
       SELECT t.amount, t.kind, t.description, t.created_at
       FROM transactions AS t
       WHERE customer_id = ?
-      ORDER BY id DESC
+      ORDER BY created_at DESC
       LIMIT ?
     SQL
 

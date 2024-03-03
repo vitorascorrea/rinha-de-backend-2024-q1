@@ -19,6 +19,7 @@ CREATE TABLE transactions (
 );
 
 CREATE INDEX transactions_customer_id_index ON transactions(customer_id);
+CREATE INDEX transactions_created_at_index ON transactions(created_at);
 
 INSERT INTO customers(balance_limit, current_balance, created_at, updated_at, deleted_at)
 VALUES

@@ -15,7 +15,7 @@ services:
       resources:
         limits:
           cpus: "0.5"
-          memory: "205MB"
+          memory: "200MB"
   api2:
     <<: *api
     hostname: api2
@@ -32,7 +32,7 @@ services:
       resources:
         limits:
           cpus: "0.1"
-          memory: "35MB"
+          memory: "40MB"
   db:
     image: postgres:latest
     restart: always
@@ -51,7 +51,7 @@ services:
       resources:
         limits:
           cpus: "0.4"
-          memory: "105MB"
+          memory: "110MB"
 
 volumes:
   postgres:
